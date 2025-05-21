@@ -51,3 +51,59 @@ exports.loginUser = (req, res) => {
         res.status(200).json({ message: "Login successful!" });
     });
 };
+
+// Update user - Full update (PUT)
+exports.updateUser = (req, res) => {
+    const userId = req.params.id;
+    const { names, email, phone, username } = req.body;
+
+    const updateQuery = `
+        UPDATE users 
+        SET names = $1, email = $2, phone = $3, username = $4 
+        WHERE id = $5
+    `;
+
+    db.query(updateQuery, [names, email, phone, username, userId], (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+        res.status(200).json({ message: "User updated successfully" });
+    });
+};
+
+// Partially update user - PATCH (e.g., email only)
+exports.patchUser = (req, res) => {
+    const userId = req.params.id;
+    const updates = [];
+    const values = [];
+    let idx = 1;
+
+    for (let field in req.body) {
+        updates.push(`${field} = $${idx}`);
+        values.push(req.body[field]);
+        idx++;
+    }
+
+    if (updates.length === 0)
+        return res.status(400).json({ message: "No fields provided for update" });
+
+    values.push(userId); // Add id as last param
+
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx}`;
+
+    db.query(query, values, (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+        res.status(200).json({ message: "User patched successfully" });
+    });
+};
+
+// Delete user
+exports.deleteUser = (req, res) => {
+    const userId = req.params.id;
+
+    const deleteQuery = `DELETE FROM users WHERE id = $1`;
+
+    db.query(deleteQuery, [userId], (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+        res.status(200).json({ message: "User deleted successfully" });
+    });
+};
+
