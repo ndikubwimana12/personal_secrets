@@ -30,7 +30,8 @@ exports.registerUser = (req, res) => {
     });
 };
 
-// Login User
+// Login Userconst jwt = require('jsonwebtoken');
+
 exports.loginUser = (req, res) => {
     const { username, password } = req.body;
 
@@ -44,11 +45,22 @@ exports.loginUser = (req, res) => {
         if (result.rows.length === 0)
             return res.status(401).json({ message: "Invalid username or password." });
 
-        const isMatch = await bcrypt.compare(password, result.rows[0].password);
+        const user = result.rows[0];
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
             return res.status(401).json({ message: "Invalid username or password." });
 
-        res.status(200).json({ message: "Login successful!" });
+        // ✅ Generate JWT token
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({
+            message: "Login successful!",
+            token
+        });
     });
 };
 
