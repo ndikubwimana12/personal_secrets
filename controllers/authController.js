@@ -35,22 +35,34 @@ exports.registerUser = (req, res) => {
 exports.loginUser = (req, res) => {
     const { username, password } = req.body;
 
+    console.log("➡️ Login request received:", username);
+
     if (!username || !password)
         return res.status(400).json({ message: "Username and password are required." });
 
     const loginQuery = "SELECT * FROM users WHERE username = $1";
     db.query(loginQuery, [username], async (err, result) => {
-        if (err) return res.status(500).json({ error: err });
+        if (err) {
+            console.error("❌ Database query error:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
 
-        if (result.rows.length === 0)
+        if (result.rows.length === 0) {
+            console.warn("⚠️ User not found");
             return res.status(401).json({ message: "Invalid username or password." });
+        }
 
         const user = result.rows[0];
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch)
-            return res.status(401).json({ message: "Invalid username or password." });
+        console.log("✅ User found:", user);
 
-        // ✅ Generate JWT token
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            console.warn("⚠️ Incorrect password");
+            return res.status(401).json({ message: "Invalid username or password." });
+        }
+
+        console.log("🔐 Generating token with secret:", process.env.JWT_SECRET);
+
         const token = jwt.sign(
             { id: user.id, username: user.username },
             process.env.JWT_SECRET,
@@ -63,6 +75,7 @@ exports.loginUser = (req, res) => {
         });
     });
 };
+
 
 // Update user - Full update (PUT)
 exports.updateUser = (req, res) => {
