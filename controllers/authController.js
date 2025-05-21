@@ -8,18 +8,18 @@ exports.registerUser = (req, res) => {
     if (!username || !password)
         return res.status(400).json({ message: "Username and password are required." });
 
-    const checkQuery = "SELECT * FROM users WHERE username = $4";
+    const checkQuery = "SELECT * FROM users WHERE username = $1";
     db.query(checkQuery, [username], async (err, result) => {
         if (err) return res.status(500).json({ error: err });
 
-        if (result.length > 0)
+        if (result.rows.length > 0)
             return res.status(409).json({ message: "Username already exists" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = `
             INSERT INTO users (names, email, phone, username, password)
             VALUES ($1, $2, $3, $4, $5)
-            `;
+        `;
 
         const values = [names, email, phone, username, hashedPassword];
 
@@ -37,14 +37,14 @@ exports.loginUser = (req, res) => {
     if (!username || !password)
         return res.status(400).json({ message: "Username and password are required." });
 
-    const loginQuery = "SELECT * FROM users WHERE username = ?";
+    const loginQuery = "SELECT * FROM users WHERE username = $1";
     db.query(loginQuery, [username], async (err, result) => {
         if (err) return res.status(500).json({ error: err });
 
-        if (result.length === 0)
+        if (result.rows.length === 0)
             return res.status(401).json({ message: "Invalid username or password." });
 
-        const isMatch = await bcrypt.compare(password, result[0].password);
+        const isMatch = await bcrypt.compare(password, result.rows[0].password);
         if (!isMatch)
             return res.status(401).json({ message: "Invalid username or password." });
 
