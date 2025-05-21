@@ -8,7 +8,7 @@ exports.registerUser = (req, res) => {
     if (!username || !password)
         return res.status(400).json({ message: "Username and password are required." });
 
-    const checkQuery = "SELECT * FROM users WHERE username = ?";
+    const checkQuery = "SELECT * FROM users WHERE username = $4";
     db.query(checkQuery, [username], async (err, result) => {
         if (err) return res.status(500).json({ error: err });
 
