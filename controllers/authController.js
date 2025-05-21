@@ -16,8 +16,14 @@ exports.registerUser = (req, res) => {
             return res.status(409).json({ message: "Username already exists" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const insertQuery = "INSERT INTO users (names, email, phone, username, password) VALUES ($1, $2, $3, $4, $5)";
-        db.query(insertQuery, [names, email, phone, username, hashedPassword], (err, result) => {
+        const query = `
+            INSERT INTO users (names, email, phone, username, password)
+            VALUES ($1, $2, $3, $4, $5)
+            `;
+
+        const values = [names, email, phone, username, hashedPassword];
+
+        db.query(query, values, (err, result) => {
             if (err) return res.status(500).json({ error: err });
             res.status(201).json({ message: "User registered successfully!" });
         });
