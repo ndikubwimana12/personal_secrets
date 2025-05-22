@@ -134,3 +134,12 @@ exports.deleteUser = (req, res) => {
     });
 };
 
+// Get all users
+exports.getAllUsers = (req, res) => {
+    const query = "SELECT * FROM users";
+    db.query(query, (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+        res.status(200).json(result.rows);
+    });
+};
+
