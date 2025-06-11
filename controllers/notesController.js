@@ -30,6 +30,17 @@ exports.getNoteById = (req, res) => {
     });
 };
 
+// Get all notes for a specific user
+exports.getNotesByUserId = (req, res) => {
+    const { id } = req.params;
+    const query = 'SELECT * FROM notes WHERE user_id = $1';
+    db.query(query, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json(result.rows);
+    });
+};
+
+
 // Update note (PUT)
 exports.updateNote = (req, res) => {
     const { id } = req.params;
