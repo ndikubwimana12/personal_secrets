@@ -22,7 +22,7 @@ app.use('/api/images', imageRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Mount the documents routes
 const documentRoutes = require('./routes/documents');
-app.use('api/documents', documentRoutes);
+app.use('/api/documents', documentRoutes);
 
 
 
