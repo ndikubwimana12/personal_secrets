@@ -23,6 +23,8 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/documents', documentRoutes);
 app.use('/api/images', imageRoutes);
 
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(3000, () => {
     console.log(`Server is running on port ${PORT}`);

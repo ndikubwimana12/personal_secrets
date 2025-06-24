@@ -11,6 +11,8 @@ router.get('/:id', getNoteById);
 // Update
 router.put('/:id', updateNote);
 router.patch('/:id', patchNote);
+router.get('/user/:id', getNotesByUserId);
+
 
 // Delete
 router.delete('/:id', deleteNote);
