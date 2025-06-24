@@ -1,33 +1,63 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const {
-    uploadDocument,
-    getAllDocuments,
-    getDocument,
-    deleteDocument
-} = require('../controllers/documentsController');
+const fs = require('fs');
+const router = express.Router();
 
-// Storage config for multer
+// File storage config
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath);
+        }
+        cb(null, uploadPath);
+    },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        cb(null, Date.now() + '_' + file.originalname);
     }
 });
 
-const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    allowedTypes.includes(file.mimetype) ? cb(null, true) : cb(new Error('Invalid file type'), false);
-};
+const upload = multer({ storage });
 
-const upload = multer({ storage, fileFilter });
+// ======================
+// Upload Document
+// ======================
+router.post('/upload', upload.single('document'), (req, res) => {
+    if (!req.file) return res.status(400).send('No file uploaded');
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.status(200).send({
+        message: 'Upload successful',
+        name: req.file.originalname,
+        url: fileUrl
+    });
+});
 
-// Routes
-router.post('/upload', upload.single('document'), uploadDocument);
-router.get('/', getAllDocuments);
-router.get('/:filename', getDocument);
-router.delete('/:filename', deleteDocument);
+// ======================
+// Get All Documents
+// ======================
+router.get('/all', (req, res) => {
+    const dirPath = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(dirPath)) return res.send([]);
+
+    const files = fs.readdirSync(dirPath).map(file => ({
+        name: file.split('_').slice(1).join('_'), // remove timestamp
+        url: `/uploads/${file}`
+    }));
+
+    res.json(files); // return JSON array
+});
+
+// ======================
+// Delete a Document by Filename
+// ======================
+router.delete('/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '..', 'uploads', req.params.filename);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        return res.status(200).send('Deleted');
+    }
+    res.status(404).send('File not found');
+});
 
 module.exports = router;

@@ -9,7 +9,6 @@ dotenv.config();
 
 const authRoutes = require('./routes/auth');
 const notesRoutes = require('./routes/notes');
-const documentRoutes = require('./routes/documents');
 const imageRoutes = require('./routes/images');
 
 
@@ -19,9 +18,12 @@ app.use(bodyParser.json());
 
 app.use('/api', authRoutes);
 app.use('/api/notes', notesRoutes);
-app.use('/uploads', express.static('uploads'));
 app.use('/api/documents', documentRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Mount the documents routes
+const documentRoutes = require('./routes/documents');
+app.use('/documents', documentRoutes);
 
 
 
